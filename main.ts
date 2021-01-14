@@ -1,11 +1,31 @@
+scene.onHitWall(SpriteKind.Player, function (sprite, location) {
+    if (hero.isHittingTile(CollisionDirection.Bottom)) {
+        if (hero.vy > 300) {
+            info.changeLifeBy(-2)
+        } else if (hero.vy < 300 && hero.vy > 200) {
+            info.changeLifeBy(-1)
+        }
+    }
+})
 scene.onOverlapTile(SpriteKind.Player, sprites.builtin.forestTiles0, function (sprite, location) {
-    game.over(false)
+    // Turn the player to "Food" to avoid getting hit again
+    sprite.setKind(SpriteKind.Food)
+    info.changeLifeBy(-1)
+    timer.after(500, function () {
+        // Turn the player back to "Player" in 0.5 second
+        sprite.setKind(SpriteKind.Player)
+    })
 })
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    hero.vy = -200
+    if (hero.isHittingTile(CollisionDirection.Bottom) || hero.isHittingTile(CollisionDirection.Left) || hero.isHittingTile(CollisionDirection.Right)) {
+        hero.vy = -200
+    }
 })
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     hero.setImage(leftFacingImg)
+})
+scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.chestClosed, function (sprite, location) {
+    game.over(true)
 })
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     hero.setImage(rightFacingImg)
@@ -91,3 +111,22 @@ scene.cameraFollowSprite(hero)
 tiles.setTilemap(tilemap`level`)
 tiles.placeOnTile(hero, tiles.getTileLocation(4, 30))
 hero.ay = 350
+info.setLife(30)
+game.onUpdateInterval(100, function () {
+    if (hero.isHittingTile(CollisionDirection.Left) && hero.vy > 0) {
+        hero.ay = 0
+        hero.vy = 15
+        hero.setImage(leftSwordOutImg)
+    } else if (hero.isHittingTile(CollisionDirection.Right) && hero.vy > 0) {
+        hero.ay = 0
+        hero.vy = 15
+        hero.setImage(rightSwordOutImg)
+    } else {
+        hero.ay = 350
+        if (hero.image == leftSwordOutImg) {
+            hero.setImage(leftFacingImg)
+        } else if (hero.image == rightSwordOutImg) {
+            hero.setImage(rightFacingImg)
+        }
+    }
+})
